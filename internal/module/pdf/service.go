@@ -3,6 +3,7 @@ package pdf
 import (
 	"fmt"
 	"io"
+	"maxchat/pdf_ms/internal/constants"
 	"maxchat/pdf_ms/internal/utils"
 	"mime/multipart"
 	"os"
@@ -25,7 +26,7 @@ func NewService(repo *Repository, uploadDir string) *Service {
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		os.MkdirAll(uploadDir, os.ModePerm)
 	}
-	return &Service{repo: repo, uploadDir: uploadDir, maxSize: 10 << 20} // 10MB
+	return &Service{repo: repo, uploadDir: uploadDir, maxSize: 10 << 20}
 }
 
 // TASK 1: Generate PDF
@@ -137,10 +138,10 @@ func (s *Service) GeneratePDF(req *GenerateRequest) (*PDFFile, error) {
 // TASK 2: Upload PDF
 func (s *Service) UploadPDF(fileHeader *multipart.FileHeader) (*PDFFile, error) {
 	if !strings.HasSuffix(strings.ToLower(fileHeader.Filename), ".pdf") {
-		return nil, fmt.Errorf("invalid file extension")
+		return nil, fmt.Errorf(string(constants.ERROR_INVALID_FILE_EXTENSION))
 	}
 	if fileHeader.Size > s.maxSize {
-		return nil, fmt.Errorf("file too large")
+		return nil, fmt.Errorf(string(constants.ERROR_FILE_TOO_LARGE))
 	}
 	file, err := fileHeader.Open()
 	if err != nil {

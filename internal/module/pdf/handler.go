@@ -2,8 +2,11 @@ package pdf
 
 import (
 	"encoding/json"
+	"fmt"
+	"maxchat/pdf_ms/internal/constants"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -35,26 +38,62 @@ func (h *Handler) Generate(w http.ResponseWriter, r *http.Request) {
 
 // TASK 2: Upload PDF
 func (h *Handler) Upload(w http.ResponseWriter, r *http.Request) {
-	// max upload 10mb
+	w.Header().Set("Content-Type", "application/json")
+
+	// max upload 10MB
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		http.Error(w, "invalid multipart form", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"message": "Invalid multipart form",
+		})
 		return
 	}
 
-	// ambil metadata file
 	_, fileHeader, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "file not found", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"success": false,
+			"message": "File not found",
+		})
 		return
 	}
 
 	uploaded, err := h.service.UploadPDF(fileHeader)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+
+		// tangani error file terlalu besar / extension
+		var statusCode int = http.StatusBadRequest
+
+		message := err.Error()
+		if strings.Contains(message, string(constants.ERROR_FILE_TOO_LARGE)) {
+			statusCode = http.StatusBadRequest
+			message = fmt.Sprintf(
+				"File too large, max %dMB",
+				h.service.maxSize/(1024*1024),
+			)
+
+		} else if strings.Contains(message, string(constants.ERROR_INVALID_FILE_EXTENSION)) {
+			statusCode = http.StatusBadRequest
+			message = "Invalid file extension, only .pdf allowed"
+		}
+
+		resp := map[string]interface{}{
+			"success":    false,
+			"error_code": err.Error(),
+			"message":    message,
+		}
+
+		w.WriteHeader(statusCode)
+		json.NewEncoder(w).Encode(resp)
 		return
 	}
 
+	// success response
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"message": "PDF uploaded successfully",

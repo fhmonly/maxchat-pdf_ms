@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"maxchat/pdf_ms/internal/config"
-	"maxchat/pdf_ms/router"
+	"maxchat/pdf_ms/internal/router"
 	"net/http"
 	"os"
 
@@ -22,12 +22,22 @@ func main() {
 	}
 	defer db.Close()
 
+	envMode := os.Getenv("ENV")
+	if envMode == "" {
+		envMode = "development"
+	}
+
+	host := ":"
+	if envMode == "development" || envMode == "d" || envMode == "dev" {
+		host = "127.0.0.1"
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
 	r := router.NewRouter(db)
-	log.Printf("Server running on http://localhost:%s\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	log.Printf("Server running on http://%s:%s\n", host, port)
+	log.Fatal(http.ListenAndServe(host+":"+port, r))
 }
