@@ -2,17 +2,27 @@ package router
 
 import (
 	"database/sql"
-	"maxchat/pdf_ms/internal/module/pdf"
 	"net/http"
+
+	"github.com/fhmonly/maxchat-pdfms/internal/module/pdf"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 )
 
 func NewRouter(db *sql.DB) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // seconds
+	}))
 
 	pdfRepo := pdf.NewRepository(db)
 	pdfService := pdf.NewService(pdfRepo, "./uploads/pdf")

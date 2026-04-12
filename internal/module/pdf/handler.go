@@ -3,10 +3,11 @@ package pdf
 import (
 	"encoding/json"
 	"fmt"
-	"maxchat/pdf_ms/internal/constants"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/fhmonly/maxchat-pdfms/internal/constants"
 
 	"github.com/go-chi/chi/v5"
 )

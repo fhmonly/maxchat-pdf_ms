@@ -3,13 +3,14 @@ package pdf
 import (
 	"fmt"
 	"io"
-	"maxchat/pdf_ms/internal/constants"
-	"maxchat/pdf_ms/internal/utils"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/fhmonly/maxchat-pdfms/internal/constants"
+	"github.com/fhmonly/maxchat-pdfms/internal/utils"
 
 	"github.com/google/uuid"
 	"github.com/jung-kurt/gofpdf"

@@ -5,15 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func NewMySQL() (*sql.DB, error) {
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("Warning: .env file not found, using system env")
-	}
-
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbHost := os.Getenv("DB_HOST")

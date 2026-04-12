@@ -1,19 +1,36 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"maxchat/pdf_ms/internal/config"
-	"maxchat/pdf_ms/internal/router"
 	"net/http"
 	"os"
+
+	"github.com/fhmonly/maxchat-pdfms/internal/config"
+	"github.com/fhmonly/maxchat-pdfms/internal/router"
 
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("Warning: .env file not found, using system env")
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "development"
+	}
+
+	isProd := func() bool {
+		switch env {
+		case "production", "prod", "p":
+			return true
+		default:
+			return false
+		}
+	}()
+
+	if !isProd {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatalf("Error loading .env file: %v", err)
+		}
 	}
 
 	db, err := config.NewMySQL()
@@ -22,13 +39,8 @@ func main() {
 	}
 	defer db.Close()
 
-	envMode := os.Getenv("ENV")
-	if envMode == "" {
-		envMode = "development"
-	}
-
 	host := ":"
-	if envMode == "development" || envMode == "d" || envMode == "dev" {
+	if !isProd {
 		host = "127.0.0.1"
 	}
 
@@ -38,6 +50,7 @@ func main() {
 	}
 
 	r := router.NewRouter(db)
+
 	log.Printf("Server running on http://%s:%s\n", host, port)
 	log.Fatal(http.ListenAndServe(host+":"+port, r))
 }
